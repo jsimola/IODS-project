@@ -7,7 +7,8 @@ output: html_document
 # About the IODS course
 
 In this course, I will learn how to use R for statistical analysis.  
-I have created a following GitHub repository:
+
+I have created the following GitHub repository:
 https://github.com/jsimola/IODS-project
 
 

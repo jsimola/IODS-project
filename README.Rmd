@@ -1,0 +1,16 @@
+---
+title: "IODS Vignette"
+author: "Jaana"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{IODS Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+This course is about open data science. 
+
+The link to my GitHub repository is:
+https://github.com/jsimola/IODS-project
