@@ -13,4 +13,4 @@ vignette: >
 This course is about open data science. 
 
 The link to my GitHub repository is:
-https://github.com/jsimola/IODS-project
+https://jsimola.github.io/IODS-project/
