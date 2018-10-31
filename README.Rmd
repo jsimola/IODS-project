@@ -11,6 +11,7 @@ vignette: >
 
 
 This course is about open data science. 
+We will learn what is open data, open science and open data science.
 
 The link to my GitHub repository is:
 https://jsimola.github.io/IODS-project/
