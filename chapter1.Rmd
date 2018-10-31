@@ -1,4 +1,15 @@
+---
+title: "Introduction to Open Data Science 2018 - 1st exercise"
+author: "Jaana Simola"
+output: html_document
+---
 
-# About the project
+# About the IODS course
 
-*Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+In this course, I will learn how to use R for statistical analysis.  
+I have created a following GitHub repository:
+https://github.com/jsimola/IODS-project
+
+
+
+
