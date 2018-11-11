@@ -1,15 +1,13 @@
 # Week 2 - Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
-
-1. Read the data
+*Read the data*
 ```{r}
 rm(list = ls()) # clear workspace first
 learning2014 <- read.csv("~/Documents/GitHub/IODS-project/learning2014.csv") # my own data wrangling
 # read.table("~/Documents/GitHub/IODS-project/data/learning2014.txt", sep = ",") # Kimmo's data
 ```
 
-exploring the structure and dimensions of the dataset
+*Explore the structure and dimensions of the dataset*
 ```{r}
 str(learning2014)
 dim(learning2014)
@@ -20,7 +18,7 @@ The variables are:
 1. Gender (Female = 1  Male = 2)
 2. Age
 3. Attitude
-4-6. Means of the deep, strategic and surface learning scores
+4-6. Mean scores of the deep, strategic and surface learning 
 7. Exam points
 
 
@@ -28,7 +26,7 @@ The variables are:
 library(ggplot2) # Access the gglot2 library
 ```
 
-2. Show a graphical overview of the data. 
+*Show a graphical overview of the data*
 ```{r}
 # show gender distributions as bar graph
 p1 <- ggplot(learning2014, aes(gender))
@@ -86,36 +84,36 @@ p <- ggpairs(learning2014, mapping = aes(col=gender, alpha = 0.3), lower = list(
 p
 ```
 
-Summary of the variables
+*Summary of the variables*
 ```{r}
 summary(learning2014)
 
 # another way of summarising the variables
-library(dplyr)
-learning2014 %>%
-  group_by(gender) %>%
-  summarise(mean = mean(Attitude), n = n())
+#library(dplyr)
+#learning2014 %>%
+#  group_by(gender) %>%
+#  summarise(mean = mean(Attitude), n = n())
 ```
 
+The sample consist of mainly female participants.
+The majority of participants are between 20 to 30 years old.
+The variables are mostly normally distributed.
+The attitudes predict the exam points, but the learning strategies do not explain the exam points.
+Age does not explain the exam points or attitudes.
 
-Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. 
 
-3. Fitting of a regression model to study whether the three explanatory variables (the learning strategies) explain the exam points. The learning strategies (deep, strategic or surface) did not explain the exam points significantly.
+*Fitting of a regression model to study whether attitudes, strategic and surface learning strategies explain the exam points. The learning strategies (strategic and surface) did not explain the exam points significantly. The exam points were significantly (p = 4.12e-09) explained by attitudes*
 ```{r}
 # fit a linear model
-my_model1 <- lm(Points ~ deep + stra + surf, data = learning2014) # how to use three explanatory vars
+my_model1 <- lm(Points ~ Attitude + stra + surf, data = learning2014) # how to use three explanatory vars
 summary(my_model1)
 
-my_model2 <- lm(Points ~ stra + surf, data = learning2014) 
+my_model2 <- lm(Points ~ Attitude, data = learning2014) 
 summary(my_model2)
 
-my_model3 <- lm(Points ~ surf, data = learning2014) 
-summary(my_model3)
-
-
 ```
-Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. 
+*Produce the diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage*
 ```{r}
-plot(my_model1)
+plot(my_model2)
 ```
 
