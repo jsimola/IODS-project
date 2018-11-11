@@ -2,7 +2,7 @@
 title: "IODS Vignette"
 author: "Jaana"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: github_document
 vignette: >
   %\VignetteIndexEntry{IODS Vignette}
   %\VignetteEngine{knitr::rmarkdown}
