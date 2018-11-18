@@ -1,0 +1,107 @@
+# Week 3 - Logistic regression
+
+*Read and explore the data*
+```{r}
+rm(list = ls())  # clear workspac
+alc <- read.csv("~/Documents/GitHub/IODS-project/data/alc.csv") # my own data wrangling
+variable.names(alc) 
+```
+
+
+### Student Performance Data Set Information
+
+This data describes student performance in two Portuguese schools. The data attributes include school, student grades, demographic, social and school related features) and it was collected by using school reports and questionnaires. The data were combined from two  datasets: (1) performance in mathematics and (2) portuguese language. The grades are means of Math and Portuguese: 
+G1 - first period grade (numeric: from 0 to 20) 
+G2 - second period grade (numeric: from 0 to 20) 
+G3 - final grade (numeric: from 0 to 20, output target)
+
+### Hypotheses of the relationship between high/low alcohol consumption and four other variables 
+
+* H1: final grade (G3) is higher for low alcohol consumers  
+* H2: high alchohol use is associated with elevated number of school absences
+* H3: low alcohol use is associated with better health
+* H4: low alchohol use is associated with longer study time per week
+
+### The distributions of the chosen variables and their relationships with alcohol consumption 
+```{r}
+# access the tidyverse libraries tidyr, dplyr, ggplot2
+library(tidyr); library(dplyr); library(ggplot2)
+
+chosen_vars <- c("high_use","G3","absences","health","studytime") # choose relevant vars
+chosen_data <- select(alc, one_of(chosen_vars))
+#chosen_data$high_useN <- as.numeric(chosen_data$high_use)
+gather(chosen_data) %>% glimpse
+gather(chosen_data) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() # bar plots
+
+# box plots
+ggplot(chosen_data, aes(x=high_use, y = G3)) + geom_boxplot()
+ggplot(chosen_data, aes(x=high_use, y = absences)) + geom_boxplot()
+ggplot(chosen_data, aes(x=high_use, y = health)) + geom_boxplot()
+ggplot(chosen_data, aes(x=high_use, y = studytime)) + geom_boxplot()
+
+```
+
+Distibutions:
+
+* The distibution of school absences is right skewed with only a few students having more absences of more than 10, while most students are between 0-5.  
+* Final grade is almost normally distributed.  
+* Healt is left skewed, because most students have very good health (= 5). 
+* Low alcohol consumption is more common than high alcohol use (approx 25 %).  
+* Study time is almost normally distributed.  
+
+The effect of alcohol consumption on the selected variables: 
+
+* Final grade is better for low alcohol consumers as suggested by H1.  
+* The number of school absences is higher for those who use more alcohol as suggested by H2.  
+* No difference in health between high and low alchohol consumers, contrary to H3.  
+* Study time is longer for those who have low alcohol consumption as suggested by H4.  
+
+
+### Using logistic regression to statistically explore the relationship between the chosen variables and alcohol consumption. 
+
+```{r}
+m <- glm(high_use ~ G3 + absences + health + studytime, data = chosen_data, family = "binomial")  # find the model with glm()
+summary(m) # summary of the model
+OddsRatios <- coef(m) %>% exp
+ConfInt <- confint(m) %>% exp
+cbind(OddsRatios, ConfInt)
+
+```
+
+Interpretation of the results:
+
+* The odds ratio (probability of high alcohol use) for absences and health are higher than for the final grade and study time.
+* Curiously, however, the coeffients for absences and study time are significant (at p < 0.001 and p < .01, respectively).
+* Absences and alcohol use show a positive relationship. This result is in line with H2 that predicted more absences for those who consume more alcochol. 
+* The relationship between study time and alcohol use is negative and thus follows the prediction of H4. That is, low alcohol use is associated with longer study time.
+* Logistic regression showed that alcohol use is not related to the final grade (G3) and health.
+
+
+### Selecting *absences* and *studytime* that had a statistical relationship with alcohol consumption.
+
+```{r}
+m2 <- glm(high_use ~ absences + studytime, data = chosen_data, family = "binomial") # find the model with glm()
+summary(m2) 
+
+# predict() the probability of high_use
+probabilities <- predict(m2, type = "response")
+
+# add the predicted probabilities to 'chosen_data'
+chosen_data <- mutate(chosen_data, probability = probabilities)
+chosen_data <- mutate(chosen_data, prediction = probability > 0.5)
+
+# 2x2 cross tabulation of predictions versus the actual values
+t <- table(high_use = chosen_data$high_use, prediction = chosen_data$prediction)
+t
+
+# The total proportion of inaccurately classified individuals (= the training error) 
+NumErr = t[2,1] + t[1,2] 
+Tot = 382 # num obs
+PropErr = round(NumErr / Tot, 2)
+Accuracy = 100 - (PropErr*100)
+
+```
+
+The model has high predictive power. In total, the model achieved an accurcay of 72% in correct classification of individuals to high/low alcohol consumers based on their school absences and study time. This much better than  guessing which would give an accuracy of 50%. 
+
+
