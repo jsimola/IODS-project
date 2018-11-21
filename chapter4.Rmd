@@ -1,0 +1,59 @@
+---
+title: "Clustering and classification"
+author: "Jaana Simola"
+date: "11/21/2018"
+output: html_document
+---
+
+# Week 4 - Clustering and classification
+
+```{r}
+rm(list = ls())  # clear workspace
+library(MASS)
+data("Boston")
+str(Boston)
+```
+
+### Boston data set
+This data has 506 osbervations (rows) and 14 variables (columns). The data includes information about housing values of  suburbs of Boston, such as crime rate, business, accessibility to highways, and characteristics of the citizens in the area. 
+
+```{r}
+library(tidyr); library(dplyr); library(ggplot2); library(tidyverse); library(corrplot) # load libraries
+```
+### Plot the distibutions of the variables
+```{r}
+gather(Boston) %>% glimpse
+gather(Boston) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_histogram() # bar plots
+```
+
+* 'age', 'black' and 'ptratio' are left skewed
+* 'dis', 'Istat' and 'nox' are right skewed
+*  most values of 'chas', 'crim' and 'zn' are zeros
+* 'indus', 'rad' and 'tax' are bimodal
+* 'medv' and 'rm' roughly normally distributed
+
+### Summarize data
+```{r}
+summary(Boston)
+```
+
+### Correlations between the variables
+```{r}
+cor_matrix <-cor(Boston) 
+cor_matrix <-round(cor_matrix, 2)
+cor_matrix 
+corrplot(cor_matrix, method = "color") 
+```
+  
+Overall, the variables show strong correlations with each other, therefore only the strongest (> 0.7 or < -0.7) are interpreted below
+
+* 'indus' correlates positively with 'nox' (0.76) and 'tax' (0.72) and negatively with 'dis' (-0.71), suggesting that the proportion of non-retail business acres is associated with higher nitrogen oxides concentration and tax rate and with  shorter distances from Boston employment centres.
+
+* 'nox' correlates positively with 'age' (0.73) and negatively with 'dis' (-0.77), suggesting that the proportion of units  built prior to 1940 is associated with higher nitrogen oxides concentration and shorter distance from employment centres. 
+* 'rm' correlates positively with 'medv' (0.7), suggesting that the average number of rooms is associated with higher median of owner-occupied homes in \$1000s.
+
+* 'age' correlates negatively with 'dis' (-0.75), suggesting that the proportion of units  built prior to 1940 is associated with shorter distance from employment centres.
+
+* 'rad' correlates with 'tax' (0.91): accessibility to highways is highly correlated with tax rate.
+
+* 'lstat' correlates negatively with 'medv' (-0.74): the percentage of lower status population (is this appropriate??) is associated with lower amount of owner-occupied homes in \$1000s.

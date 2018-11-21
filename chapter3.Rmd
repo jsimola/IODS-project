@@ -2,7 +2,7 @@
 
 *Read and explore the data*
 ```{r}
-rm(list = ls())  # clear workspac
+rm(list = ls())  # clear workspace
 alc <- read.csv("~/Documents/GitHub/IODS-project/data/alc.csv") # my own data wrangling
 variable.names(alc) 
 ```
