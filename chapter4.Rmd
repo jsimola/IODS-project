@@ -17,7 +17,7 @@ str(Boston)
 ### Boston data set
 This data has 506 osbervations (rows) and 14 variables (columns). The data includes information about housing values of  suburbs of Boston, such as crime rate, business, accessibility to highways, and characteristics of the citizens in the area. 
 
-```{r}
+```{r, include=FALSE}
 library(tidyr); library(dplyr); library(ggplot2); library(tidyverse); library(corrplot) # load libraries
 ```
 ### Plot the distibutions of the variables
@@ -40,7 +40,7 @@ summary(Boston)
 ### Correlations between the variables
 ```{r}
 cor_matrix <-cor(Boston) 
-cor_matrix <-round(cor_matrix, 2)
+cor_matrix <-round(cor_matrix, digits=2)
 cor_matrix 
 corrplot(cor_matrix, method = "color") 
 ```
@@ -57,3 +57,39 @@ Overall, the variables show strong correlations with each other, therefore only 
 * 'rad' correlates with 'tax' (0.91): accessibility to highways is highly correlated with tax rate.
 
 * 'lstat' correlates negatively with 'medv' (-0.74): the percentage of lower status population (is this appropriate??) is associated with lower amount of owner-occupied homes in \$1000s.
+
+### Standardize the data
+```{r}
+boston_scaled <- scale(Boston)
+summary(boston_scaled)
+```
+  
+The data is now standardized to zero mean.
+
+### Create a categorical variable of the crime rate 
+```{r}
+boston_scaled <- as.data.frame(boston_scaled)
+
+# create a quantile vector of crim and print it
+bins <- quantile(boston_scaled$crim) 
+
+# create a categorical variable 'crime' and print the table
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high"))
+table(crime)
+
+# remove original crim from the dataset
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+```
+
+###  Divide the dataset to train (80%) and test (20%) sets
+```{r}
+n <- nrow(boston_scaled) # number of rows
+
+# choose randomly 80% of the rows to create the train set
+ind <- sample(n,  size = n * 0.8)
+train <- boston_scaled[ind,]
+
+# create test set 
+test <- boston_scaled[-ind,]
+```
+
