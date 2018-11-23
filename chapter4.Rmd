@@ -70,26 +70,43 @@ The data is now standardized to zero mean.
 ```{r}
 boston_scaled <- as.data.frame(boston_scaled)
 
-# create a quantile vector of crim and print it
-bins <- quantile(boston_scaled$crim) 
+bins <- quantile(boston_scaled$crim) # create a quantile vector of crim and print it
 
-# create a categorical variable 'crime' and print the table
+# create a categorical variable 'crime' 
 crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high"))
-table(crime)
-
-# remove original crim from the dataset
-boston_scaled <- dplyr::select(boston_scaled, -crim)
+table(crime) # print the table
+boston_scaled <- cbind(boston_scaled, crime) # bind crime to boston_scaled
+boston_scaled <- dplyr::select(boston_scaled, -crim) # remove original crim from the dataset
 ```
 
 ###  Divide the dataset to train (80%) and test (20%) sets
 ```{r}
 n <- nrow(boston_scaled) # number of rows
+ind <- sample(n,  size = n * 0.8) # choose randomly 80% of the rows
+train <- boston_scaled[ind,] # create the train set
+test <- boston_scaled[-ind,] # create the test set 
+```
 
-# choose randomly 80% of the rows to create the train set
-ind <- sample(n,  size = n * 0.8)
-train <- boston_scaled[ind,]
+### Fitting a linear discriminant analysis (LDA) to the dataset
+```{r}
+lda.fit <- lda(crime  ~., data = train) # crime rate is the target variable and all the other variables are predictors 
+lda.fit # print the solution
+classes <- as.numeric(train$crime) # target classes as numeric
+plot(lda.fit, dimen = 2, col = classes, pch = classes) # plot the lda results
+```
 
-# create test set 
-test <- boston_scaled[-ind,]
+### Predict the classes with the LDA model on the test data
+```{r}
+correct_classes <- test$crime # save the crime categories from the test set 
+test <- select(test, -crime) # remove crime from the test dataset
+lda.pred <- predict(lda.fit, newdata = test) # predict classes with test data
+table(correct = correct_classes, predicted = lda.pred$class) # Cross tabulate the results 
+```
+  
+Overall, the model performs well in predicting the crime categories. The high crime category is predicted fully, medium high is predicted well execpt small confusion with medium low crime rate category. Low and med_low categories are mixed.  
+
+```{r}
+#correct_classes <- as.numeric(test$class)
+
 ```
 
