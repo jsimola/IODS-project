@@ -98,7 +98,7 @@ plot(lda.fit, dimen = 2, col = classes, pch = classes) # plot the lda results
 ### Predict the classes with the LDA model on the test data
 ```{r}
 correct_classes <- test$crime # save the crime categories from the test set 
-test <- select(test, -crime) # remove crime from the test dataset
+test <- dplyr::select(test, -crime) # remove crime from the test dataset
 lda.pred <- predict(lda.fit, newdata = test) # predict classes with test data
 table(correct = correct_classes, predicted = lda.pred$class) # Cross tabulate the results 
 ```
