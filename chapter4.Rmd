@@ -139,7 +139,7 @@ lda.fit4 <- lda(clusters  ~., data = boston_scaled) # perform LDA using the clus
 lda.fit4
 
 # the function to draw lda biplot arrows 
-my_scale = 10 # unable to draw the arrows - i'm not sure what myscale does -tested with different values without any effect 
+my_scale = 3 # unable to draw the arrows - i'm not sure what myscale does -tested with different values without any effect 
 lda.arrows <- function(x, myscale = my_scale, arrow_heads = 0.1, color = "black", tex = 0.75, choices = c(1,2)){
   heads <- coef(x)
   arrows(x0 = 0, y0 = 0, 
