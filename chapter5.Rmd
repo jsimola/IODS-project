@@ -1,0 +1,97 @@
+---
+title: "Dimensionality reduction techniques"
+author: "Jaana Simola"
+date: "11/28/2018"
+output: html_document
+---
+
+# Week 5 - Dimensionality reduction techniques
+
+```{r}
+rm(list=ls())
+setwd("/Users/jsimola/Documents/GitHub/IODS-project/")
+human <- read.csv(file="data/human.csv", row.names = 1)
+```
+
+```{r, include=FALSE}
+# access libraries
+library(ggplot2); library(dplyr); library(GGally); library(corrplot)
+```
+
+
+### Visualize the variable distributions and their relationships and show summaries
+```{r}
+ggpairs(human)
+cor(human)%>% corrplot(method = "color")
+summary(human)
+```
+
+  
+* eduRatio, edu.expectancy and F.inParl are almost normally distributed, life.expectancy and workRatio are left-skewed, and CNI, MMR and ABR are right-skewed
+* The ratio of Female / Male populations with secondary education (eduRatio) correlates positively with the expected years of schooling (edu.expectancy) and with life expectancy at birth, and negatively with maternal mortality ratio (MMR) and with adolescent birth rate (ABR).
+* Expected years of schooling correlates positively with life expectancy at birth and with gross national income (GNI) per capita and negatively with maternal mortality ratio and with the adolescent birth rate.
+* Life expectancy at birth correlates positively with gross national income (GNI) per capita and negatively with maternal mortality ratio and adolescent birth rate.
+* Maternal mortality ratio correlates positively with adolescent birth rate.
+
+
+### Perform principal component analysis (PCA) on the not standardized data  
+```{r}
+human_pca <- prcomp(human)
+summary(human_pca) # explore the variability captured by the principal components
+options(warn = -1) # Dont' want to see the "zero-length arrow is of indeterminate angle and so skipped"
+biplot(human_pca, choices = 1:2, cex = c(0.5, 0.8), col = c("grey40", "deeppink2"), xlim=c(-0.5, 0.5), ylim=c(-0.4, 0.2)) # Draw a biplot displaying the observations by the first two principal components
+```
+
+  
+* PC1 explains 99.9999% of the variance
+* PC2 explains 0.0001% of the variance
+
+### Standardize the data, do PCA and add descriptive labels
+```{r}
+human_std <- scale(human) # standardize the variables
+human_pca_std <- prcomp(human_std) # Do PCA for the standardized data
+s <- summary(human_pca_std)
+s # show summary
+pca_pr <- round(1*s$importance[2, ], digits = 5) # rounded percetanges of variance captured by each PC
+pca_pr <- pca_pr*100 # # print out the percentages of variance
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)") # create labels
+
+# draw a biplot
+biplot(human_pca_std, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
+# modify labels 
+lab <- c("Maternal mortality & births by adolescents rate  ", "education & life expectancy at birth ")
+pc_lab2 <- paste0(lab, "(", pca_pr, "%)") # create labels
+biplot(human_pca_std, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab2[1], ylab = pc_lab2[2])
+```
+  
+The PCA results differ depending on whether the analysis is performed for the non-standardized vs. standardized data. In the non-standarized data, PC1 explained almost 100% of the variance (due to large differences in the  standard deviantions (SD) between the components). In the standardized data, the SDs are not that different and the percentages of variance explained by the components are: PC1 - 53.61%, PC2 - 16.24%, PC3 - 9.57%, PC4 - 7.58%, PC5 - 5.48%, PC6 - 3.60%, PC7 - 2.63%, PC8 - 1.30%.
+  
+The first principal component (PC) dimension describes the circumstances of women giving birth, i.e.,  their mortality rate during labour and the age at which woment give birth.
+  
+The second PC dimension describes the expeted education and lifetime at birth. 
+
+
+### Multiple Correspondence Analysis (MCA)
+```{r}
+library(FactoMineR) # access library
+```
+
+#### Load and explore the data
+```{r}
+data("tea") # load tea dataset
+str(tea) # 36 variables, 300 observations based on a questionnaire on tea consumption
+```
+
+### Select subset of variables and do MCA
+```{r}
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch") # column names to keep in the dataset
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+mca_tea_time <- MCA(tea_time, graph = FALSE) # multiple correspondence analysis
+summary(mca_tea_time)
+plot(mca_tea_time, invisible=c("ind"), habillage = "quali") # visualize MCA
+```
+
+  
+* Both dimensions 1 and 2 correlate strongly with variables 'how' (0.71, 0.52 respectively) and 'where' (0.71, 0.68). These variables indicate how tea is packed and where it has been bought. In addition, dimension 1 correlates weakly with variable 'Tea' (0.13) that indicates the type of tea (e.g., black, green), while dimension 2 correlates weakly with 'How' that indicates if tea is consumed with milk, lemon, etc.  
+* The MCA biplot shows that dimensions 1 explains 15.24% of the variance and dimension 2 explains 14.23% of the variance. Distance in this plot is a measure of similarity, which shows that unpackaged green tea that is bought from a special tea shop differs from the other categories.  
