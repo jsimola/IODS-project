@@ -1,5 +1,5 @@
 ---
-title: "IODS Vignette"
+#title: "IODS Vignette"
 author: "Jaana"
 date: "`r Sys.Date()`"
 output: github_document
