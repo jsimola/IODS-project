@@ -1,0 +1,163 @@
+---
+title: "Analysis of longitudinal data"
+author: "Jaana Simola"
+date: "12/6/2018"
+output: html_document
+---
+
+# Week 6 - Analysis of longitudinal data
+
+
+```{r, echo = FALSE}
+rm(list = ls())
+setwd("/Users/jsimola/Documents/GitHub/IODS-project/")
+```
+
+
+### Part I - Implement the analyses of Chapter 8 of MABS using the RATS data
+
+```{r}
+RATSL <- read.csv(file="data/RATSL.csv") # load the RATS data in long form (176 obs. 5 vars)
+# Factor ID & Group
+RATSL$ID <- factor(RATSL$ID)
+RATSL$Group <- factor(RATSL$Group)
+#RATSL # scan through the data
+```
+
+```{r, echo=FALSE}
+library(dplyr) # access libraries
+library(tidyr)
+library(ggplot2)
+```
+  
+RATS data is from a nutrition study conducted in three groups of rats. The three groups were put on different diets, and each animal’s body weight (grams) was recorded repeatedly on days 1 to 64 (i.e., approximately weekly, except in week seven when two recordings were taken) over a 9-week period. 
+
+### Visualize the growths of individual rats separately for the three groups of rats
+```{r}
+ggplot(RATSL, aes(x = Time, y = rats, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(RATSL$rats), max(RATSL$rats)))
+```
+  
+Interpretation:
+  
+* The group sizes vary, group 1 is twice as large as groups 2 and 3 (Group 1: N=8, Group 2: N=4 and Group 3: N=4).
+* The rats who are bigger in the beginning of the study tend to stay bigger througout the study (cf. tracking).
+
+### Standardize the variable 'rats' and plot individual data again to reveal the tracking phenomenon 
+```{r}
+RATSL <- RATSL %>%
+  group_by(Time) %>%
+  mutate(stdrats = (rats - mean(rats))/sd(rats) ) %>%
+  ungroup()
+
+ggplot(RATSL, aes(x = Time, y = stdrats, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name = "standardized rats")
+```
+  
+The plots that show individual data from large numbers of observations are visually crowded and therefore of little use. Let's look at summary plots next.
+
+### Plotting summary data with mean and standard error of rat growth by group and measurement day 
+```{r}
+
+n <- RATSL$Time %>% unique() %>% length() # Number of days
+
+RATSS <- RATSL %>%
+  group_by(Group, Time) %>%
+  summarise( mean = mean(rats), se = sd(rats)/sqrt(n) ) %>%
+  ungroup()
+
+ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.5)) +
+  scale_y_continuous(name = "mean(rats) +/- se(rats)")
+```
+  
+* Rats in Group1 are smaller than rats in Group 2 and 3, while rats in Group 2 are smaller than rats in Group 3.
+
+### Remove baseline (day 1) and look at a boxplot of the mean rat growth by groups 
+```{r}
+# Create a summary data by group and ID with mean as the summary variable (ignoring baseline day 1).
+RATSL11D <- RATSL %>%
+  filter(Time > 1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(rats) ) %>%
+  ungroup()
+
+ggplot(RATSL11D, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(rats)")
+```
+  
+### Remove outliers and draw the boxplot again
+```{r}
+RATSL11D_outlr <- RATSL11D %>%
+  filter(mean > 250 & mean < 550) 
+#RATSL11D_outlr 
+
+ggplot(RATSL11D_outlr, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(rats)")
+```
+
+
+Although the graphical material presented up to now has all indicated a difference between the groups, let's perform a formal test for a difference.
+
+```{r}
+# load original RATS data to obtain baseline
+RATS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt", header = TRUE, sep = "\t")
+```
+
+### Fit the linear model with the mean as the response 
+```{r}
+RATSL11D2 <- RATSL11D %>%
+  mutate(baseline = RATS$WD1)
+
+fit <- lm(mean ~ baseline + Group, data = RATSL11D2)
+summary(fit)
+```
+  
+Don't know what the results mean. The visualizations indicate clear differences between groups, but only baseline has significant effect here..?  
+
+### Part II - Implement the analyses of Chapter 9 of MABS using the BPRS data.
+
+```{r}
+BPRSL <- read.csv(file="data/BPRSL.csv") # load the BPRS data in long form (360 obs. 5 vars)
+# Factor treatment & subject
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+```
+  
+The BPRS data contains values from 40 male subjects randomly assigned to one of two treatment groups. Each subject was rated on the brief psychiatric rating scale (BPRS) measured before treatment began (week 0) and then at weekly intervals for eight weeks.
+
+### Visualize BPRS with a line plot that shows the BPRS values for all 40 men, differentiating between the two  treatment groups 
+```{r}
+ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))
+```
+  
+Interpretation:
+* The BPRS score of almost all the men is decreasing over the eight weeks of the study.
+* The subjects who have higher BPRS values at the beginning tend to have higher values throughout the study.
+* There are substantial individual differences and variability appears to decrease with time.
+
+
+
+
+### Analysis and interpretation
