@@ -158,6 +158,4 @@ Interpretation:
 * There are substantial individual differences and variability appears to decrease with time.
 
 
-
-
-### Analysis and interpretation
+Unfortunately, i run out of time to finish the second part of the exercises :(
